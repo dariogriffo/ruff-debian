@@ -1,0 +1,59 @@
+name: Check for new ruff release
+
+on:
+  schedule:
+    # Hourly, offset to avoid the top-of-hour rush. releases/latest already
+    # excludes prereleases and drafts, so we only ever chase stable tags.
+    - cron: "29 * * * *"
+  workflow_dispatch: {}
+
+# Only one checker at a time.
+concurrency:
+  group: check-upstream
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write   # required to dispatch release.yml
+
+jobs:
+  check:
+    name: Compare upstream vs published
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect and dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # Latest stable ruff tag upstream (e.g. 0.15.21).
+          UPSTREAM=$(gh api repos/astral-sh/ruff/releases/latest -q .tag_name)
+          echo "Upstream ruff: $UPSTREAM"
+
+          # Our latest published release tag is "<ruff>+<build>" (e.g. 0.15.21+1).
+          # 404 (no releases yet) -> empty -> treat as "needs building".
+          OURS=$(gh api repos/${{ github.repository }}/releases/latest -q .tag_name 2>/dev/null || echo "")
+          OURS_RUFF="${OURS%%+*}"
+          echo "Ours: ${OURS:-<none>} (ruff part: ${OURS_RUFF:-<none>})"
+
+          if [ "$UPSTREAM" = "$OURS_RUFF" ]; then
+            echo "Up to date, nothing to do."
+            exit 0
+          fi
+
+          # Don't dispatch a duplicate if a build is already running/queued.
+          ACTIVE=$(gh run list --workflow=release.yml \
+            --json status \
+            -q '[.[] | select(.status == "in_progress" or .status == "queued")] | length')
+          if [ "$ACTIVE" -gt 0 ]; then
+            echo "A release.yml run is already active ($ACTIVE); skipping this tick."
+            exit 0
+          fi
+
+          echo "New ruff release detected: $OURS_RUFF -> $UPSTREAM. Dispatching build."
+          gh workflow run release.yml \
+            -f ruff_version="$UPSTREAM" \
+            -f build_version=1 \
+            -f architecture=all

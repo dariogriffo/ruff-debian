@@ -1,0 +1,15 @@
+Source: ruff
+Section: utils
+Priority: optional
+Maintainer: Dario Griffo <dariogriffo@gmail.com>
+Build-Depends: debhelper-compat (= 13), wget, ca-certificates
+Standards-Version: 4.6.2
+Homepage: https://github.com/astral-sh/ruff
+Rules-Requires-Root: no
+
+Package: ruff
+Architecture: amd64 arm64 armel armhf ppc64el s390x riscv64 i386
+Depends: ${misc:Depends}
+Description: An extremely fast Python linter and code formatter, written in Rust
+ Ruff is an extremely fast Python linter and code formatter that can replace
+ Flake8, isort, Black and dozens of plugins while running 10-100x faster.

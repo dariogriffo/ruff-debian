@@ -1,0 +1,43 @@
+#!/usr/bin/make -f
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+RUFF_VERSION := $(shell dpkg-parsechangelog -S Version | sed 's/[-~].*//')
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+
+override_dh_auto_build:
+	@arch="$(DEB_HOST_ARCH)"; \
+	case "$$arch" in \
+		amd64)   RUFF_RELEASE="ruff-x86_64-unknown-linux-musl" ;; \
+		arm64)   RUFF_RELEASE="ruff-aarch64-unknown-linux-musl" ;; \
+		armel)   RUFF_RELEASE="ruff-arm-unknown-linux-musleabihf" ;; \
+		armhf)   RUFF_RELEASE="ruff-armv7-unknown-linux-musleabihf" ;; \
+		ppc64el) RUFF_RELEASE="ruff-powerpc64le-unknown-linux-gnu" ;; \
+		s390x)   RUFF_RELEASE="ruff-s390x-unknown-linux-gnu" ;; \
+		riscv64) RUFF_RELEASE="ruff-riscv64gc-unknown-linux-gnu" ;; \
+		i386)    RUFF_RELEASE="ruff-i686-unknown-linux-musl" ;; \
+		*) echo "Unsupported architecture: $$arch"; exit 1 ;; \
+	esac; \
+	echo "Downloading $$RUFF_RELEASE for $(RUFF_VERSION)..."; \
+	wget -q "https://github.com/astral-sh/ruff/releases/download/$(RUFF_VERSION)/$$RUFF_RELEASE.tar.gz"; \
+	tar -xf "$$RUFF_RELEASE.tar.gz"; \
+	rm -f "$$RUFF_RELEASE.tar.gz"; \
+	echo "$$RUFF_RELEASE" > .ruff_release_name
+
+override_dh_auto_install:
+	@RUFF_RELEASE=$$(cat .ruff_release_name); \
+	install -D -m 755 "$$RUFF_RELEASE/ruff" debian/ruff/usr/bin/ruff
+
+override_dh_auto_test:
+
+override_dh_auto_clean:
+	@if [ -f .ruff_release_name ]; then \
+		RUFF_RELEASE=$$(cat .ruff_release_name); \
+		rm -rf "$$RUFF_RELEASE" .ruff_release_name || true; \
+	fi
+
+override_dh_strip:
+
+override_dh_shlibdeps:
