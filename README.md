@@ -10,12 +10,27 @@ resolute) on amd64, arm64, armel, armhf, ppc64el, s390x, riscv64 and i386.
 
 ## Install
 
+> ⚠️ **From 1 October 2026, apt access requires a yearly subscription**
+> ([deb.griffo.io](https://deb.griffo.io)). To use this tool for free, download
+> the .deb from the [Releases](https://github.com/dariogriffo/ruff-debian/releases) page
+> and install it manually (see below).
+
 ```bash
 sudo install -d -m 0755 /etc/apt/keyrings
 curl -fsSL https://deb.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc | sudo gpg --dearmor --yes -o /etc/apt/keyrings/deb.griffo.io.gpg
 echo "deb [signed-by=/etc/apt/keyrings/deb.griffo.io.gpg] https://deb.griffo.io/apt $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/deb.griffo.io.list > /dev/null
 sudo apt update
 sudo apt install -y ruff
+```
+
+### Manual Installation
+
+1. Download the .deb package for your Debian version available on
+   the [Releases](https://github.com/dariogriffo/ruff-debian/releases) page.
+2. Install the downloaded .deb package.
+
+```sh
+sudo dpkg -i <filename>.deb
 ```
 
 ## How it works
