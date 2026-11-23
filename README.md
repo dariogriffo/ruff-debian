@@ -6,7 +6,7 @@ extremely fast Python linter and code formatter, written in Rust by Astral.
 Packages are built automatically from official upstream releases (usually
 within hours) and served from **[deb.griffo.io](https://deb.griffo.io)** for
 Debian (bookworm, trixie, forky, sid) and Ubuntu (jammy, noble, questing,
-resolute) on amd64, arm64, armel, armhf, ppc64el, s390x, riscv64 and i386.
+resolute, stonking) on amd64, arm64, armel, armhf, ppc64el, s390x, riscv64 and i386.
 
 ## Install
 
